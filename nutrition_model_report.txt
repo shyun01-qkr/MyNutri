@@ -1,0 +1,196 @@
+Random Forest 기반 PHR 부족 가능 영양소 예측 모델 평가
+
+주의: 본 모델은 건강기능식품 추천 참고용이며 질병 진단 목적이 아닙니다.
+
+데이터 수: 12650
+Feature 수: 40
+Label 수: 17
+
+Macro F1: 0.9368
+Micro F1: 0.9984
+
+===== vitamin_d_risk (Vitamin D 부족 가능성) =====
+Accuracy: 0.9996
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      1435
+           1       1.00      1.00      1.00      1095
+
+    accuracy                           1.00      2530
+   macro avg       1.00      1.00      1.00      2530
+weighted avg       1.00      1.00      1.00      2530
+
+===== vitamin_c_risk (Vitamin C 부족 가능성) =====
+Accuracy: 1.0000
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      1737
+           1       1.00      1.00      1.00       793
+
+    accuracy                           1.00      2530
+   macro avg       1.00      1.00      1.00      2530
+weighted avg       1.00      1.00      1.00      2530
+
+===== vitamin_b_risk (Vitamin B Complex 부족 가능성) =====
+Accuracy: 0.9964
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      1848
+           1       0.99      0.99      0.99       682
+
+    accuracy                           1.00      2530
+   macro avg       1.00      1.00      1.00      2530
+weighted avg       1.00      1.00      1.00      2530
+
+===== magnesium_risk (Magnesium 부족 가능성) =====
+Accuracy: 1.0000
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      2017
+           1       1.00      1.00      1.00       513
+
+    accuracy                           1.00      2530
+   macro avg       1.00      1.00      1.00      2530
+weighted avg       1.00      1.00      1.00      2530
+
+===== calcium_risk (Calcium 부족 가능성) =====
+Accuracy: 0.9996
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      1435
+           1       1.00      1.00      1.00      1095
+
+    accuracy                           1.00      2530
+   macro avg       1.00      1.00      1.00      2530
+weighted avg       1.00      1.00      1.00      2530
+
+===== zinc_risk (Zinc 부족 가능성) =====
+Accuracy: 0.9960
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      2238
+           1       0.97      1.00      0.98       292
+
+    accuracy                           1.00      2530
+   macro avg       0.98      1.00      0.99      2530
+weighted avg       1.00      1.00      1.00      2530
+
+===== iron_risk (Iron 부족 가능성) =====
+Accuracy: 1.0000
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      2435
+           1       1.00      1.00      1.00        95
+
+    accuracy                           1.00      2530
+   macro avg       1.00      1.00      1.00      2530
+weighted avg       1.00      1.00      1.00      2530
+
+===== folate_risk (Folate 부족 가능성) =====
+Accuracy: 0.9992
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      2506
+           1       1.00      0.92      0.96        24
+
+    accuracy                           1.00      2530
+   macro avg       1.00      0.96      0.98      2530
+weighted avg       1.00      1.00      1.00      2530
+
+===== omega3_need (EPA/DHA(Omega3) 보충 고려) =====
+Accuracy: 0.9984
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      1761
+           1       0.99      1.00      1.00       769
+
+    accuracy                           1.00      2530
+   macro avg       1.00      1.00      1.00      2530
+weighted avg       1.00      1.00      1.00      2530
+
+===== probiotics_need (Probiotics 보충 고려) =====
+Accuracy: 1.0000
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      2254
+           1       1.00      1.00      1.00       276
+
+    accuracy                           1.00      2530
+   macro avg       1.00      1.00      1.00      2530
+weighted avg       1.00      1.00      1.00      2530
+
+===== lutein_need (Lutein 보충 고려) =====
+Accuracy: 1.0000
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      1098
+           1       1.00      1.00      1.00      1432
+
+    accuracy                           1.00      2530
+   macro avg       1.00      1.00      1.00      2530
+weighted avg       1.00      1.00      1.00      2530
+
+===== red_ginseng_need (Red Ginseng 보충 고려) =====
+Accuracy: 1.0000
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      2119
+           1       1.00      1.00      1.00       411
+
+    accuracy                           1.00      2530
+   macro avg       1.00      1.00      1.00      2530
+weighted avg       1.00      1.00      1.00      2530
+
+===== milk_thistle_need (Milk Thistle 보충 고려) =====
+Accuracy: 1.0000
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      2530
+
+    accuracy                           1.00      2530
+   macro avg       1.00      1.00      1.00      2530
+weighted avg       1.00      1.00      1.00      2530
+
+===== coq10_need (Coenzyme Q10 보충 고려) =====
+Accuracy: 0.9984
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      1741
+           1       0.99      1.00      1.00       789
+
+    accuracy                           1.00      2530
+   macro avg       1.00      1.00      1.00      2530
+weighted avg       1.00      1.00      1.00      2530
+
+===== policosanol_need (Policosanol 보충 고려) =====
+Accuracy: 0.9992
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      1910
+           1       1.00      1.00      1.00       620
+
+    accuracy                           1.00      2530
+   macro avg       1.00      1.00      1.00      2530
+weighted avg       1.00      1.00      1.00      2530
+
+===== garcinia_need (Garcinia Cambogia 보충 고려) =====
+Accuracy: 1.0000
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      1547
+           1       1.00      1.00      1.00       983
+
+    accuracy                           1.00      2530
+   macro avg       1.00      1.00      1.00      2530
+weighted avg       1.00      1.00      1.00      2530
+
+===== saw_palmetto_need (Saw Palmetto 보충 고려) =====
+Accuracy: 1.0000
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      1826
+           1       1.00      1.00      1.00       704
+
+    accuracy                           1.00      2530
+   macro avg       1.00      1.00      1.00      2530
+weighted avg       1.00      1.00      1.00      2530

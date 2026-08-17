@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>내 건강 Pick - AI 건강기능식품 추천</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; background: #f8faf9; color: #2d3436; }
+:root {
+  --primary: #2ecc71;
+  --primary-light: #a8e6cf;
+  --primary-dark: #27ae60;
+  --secondary: #74b9ff;
+  --secondary-light: #d6eaf8;
+  --accent: #00b894;
+  --warning: #fdcb6e;
+  --danger: #e17055;
+  --bg: #f8faf9;
+  --card: #ffffff;
+  --text: #2d3436;
+  --text-light: #636e72;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --radius: 16px;
+}
+.container { max-width: 480px; margin: 0 auto; padding: 16px; }
+body { display: flex; justify-content: center; min-height: 100vh; }
+.app-header { text-align: center; padding: 20px 0 8px; margin-bottom: 8px; }
+.app-header .logo { font-size: 32px; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.app-header .subtitle { font-size: 13px; color: var(--text-light); margin-top: 2px; }
+.screen { display: none; animation: fadeIn 0.3s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.btn { display: block; width: 100%; padding: 14px 20px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; }
+.btn-primary { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(46,204,113,0.3); }
+.btn-secondary { background: var(--secondary-light); color: #0984e3; }
+.btn-secondary:hover { background: #b2d8f5; }
+.btn-outline { background: white; border: 2px solid var(--primary-light); color: var(--primary-dark); }
+.btn-outline:hover { background: var(--primary-light); }
+.btn-ghost { background: transparent; color: var(--text-light); padding: 10px; }
+.btn-sm { padding: 10px 16px; font-size: 13px; }
+.btn-back { background: none; border: none; font-size: 24px; cursor: pointer; padding: 4px 8px; color: var(--text); }
+.form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; margin-top: 12px; }
+.form-input { width: 100%; padding: 12px 14px; border: 2px solid #e8ece9; border-radius: 12px; font-size: 14px; outline: none; transition: border 0.2s; }
+.form-input:focus { border-color: var(--primary); }
+.form-select { width: 100%; padding: 12px 14px; border: 2px solid #e8ece9; border-radius: 12px; font-size: 14px; outline: none; background: white; }
+.form-group { display: flex; gap: 8px; }
+.form-group .form-input, .form-group .form-select { flex: 1; }
+.section-title { font-size: 15px; font-weight: 700; margin: 16px 0 8px; }
+.choice-card { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: white; border-radius: var(--radius); box-shadow: var(--shadow); cursor: pointer; transition: all 0.2s; margin-bottom: 8px; }
+.choice-card.active { border: 2px solid var(--primary); }
+.choice-card .cc-icon { width: 44px; flex-shrink: 0; text-align: center; font-size: 28px; }
+.choice-card .cc-content { flex: 1; min-width: 0; }
+.choice-card .cc-title { font-size: 14px; font-weight: 600; }
+.choice-card .cc-desc { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+.health-goal-tag { display: inline-block; padding: 8px 16px; border-radius: 20px; font-size: 13px; background: #f0faf4; color: var(--primary-dark); cursor: pointer; transition: all 0.2s; border: 2px solid transparent; user-select: none; }
+.health-goal-tag.selected { border-color: var(--primary); background: white; }
+.card { background: white; border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); margin-bottom: 10px; }
+.card-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+.summary-badge { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; }
+.nutrient-tag { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 13px; margin: 3px; }
+.nutrient-tag.green { background: #d4edda; color: #155724; }
+.product-card { background: white; border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); margin-bottom: 10px; }
+.product-card .pc-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+.product-card .pc-company { font-size: 11px; color: var(--text-light); margin-bottom: 6px; }
+.product-card .pc-score-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.product-card .pc-score-badge { padding: 4px 10px; border-radius: 8px; color: white; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+.product-card .pc-section { margin-top: 8px; }
+.product-card .pc-section-title { font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--text-light); }
+.product-card .pc-ing { display: inline-block; padding: 3px 8px; background: #f0faf4; border-radius: 6px; font-size: 11px; margin: 2px; }
+.product-card .pc-ing-list { display: flex; flex-wrap: wrap; gap: 4px; }
+.progress-bar { display: flex; gap: 6px; justify-content: center; margin: 12px 0; }
+.progress-step { width: 8px; height: 8px; border-radius: 50%; background: #e0e0e0; transition: all 0.3s; }
+.progress-step.done { background: var(--primary); }
+.progress-step.current { background: var(--accent); transform: scale(1.3); }
+.toggle { position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; }
+.toggle input { display: none; }
+.toggle-slider { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #ccc; border-radius: 24px; transition: 0.3s; }
+.toggle-slider::before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+.toggle input:checked + .toggle-slider { background: var(--primary); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; padding: 20px; }
+.modal-overlay.active { display: flex; }
+.modal-content { background: white; border-radius: 20px; padding: 24px; max-width: 420px; width: 100%; max-height: 85vh; overflow-y: auto; position: relative; }
+.modal-close { position: absolute; top: 12px; right: 12px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-light); padding: 4px; }
+.toast { visibility: hidden; min-width: 200px; background: #333; color: white; text-align: center; border-radius: 10px; padding: 12px 20px; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 200; font-size: 14px; opacity: 0; transition: all 0.3s; }
+.toast.show { visibility: visible; opacity: 1; }
+.loading { text-align: center; padding: 40px 20px; }
+.loading-spinner { width: 40px; height: 40px; border: 4px solid #e8ece9; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.disclaimer { font-size: 11px; color: var(--text-light); padding: 12px 14px; background: #fff3cd; border-radius: 10px; margin-top: 8px; line-height: 1.5; }
+.ai-report-modal .modal-content { max-width: 400px; }
+.preview-box { background: #f8f0ff; border-radius: 12px; padding: 14px; margin: 12px 0; font-size: 13px; line-height: 1.6; }
+.preview-box li { margin-bottom: 6px; }
+.payment-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; }
+.payment-screen.active { display: flex; }
+.payment-card { background: white; border-radius: 20px; padding: 32px 24px; max-width: 380px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.payment-card .pay-icon { font-size: 48px; margin-bottom: 16px; }
+.payment-card h3 { font-size: 20px; margin-bottom: 8px; color: #2d3436; }
+.payment-card p { font-size: 14px; color: #636e72; line-height: 1.6; margin-bottom: 20px; }
+.payment-card .btn-pay { background: linear-gradient(135deg,#6c5ce7,#a29bfe); color: white; border: none; border-radius: 12px; padding: 14px 0; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; }
+.payment-card .btn-pay:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(108,92,231,0.3); }
+.payment-card .btn-cancel-pay { background: #f1f2f6; color: #636e72; border: none; border-radius: 12px; padding: 14px 0; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="screen active" id="screen-home">
+  <div class="app-header">
+    <div class="logo">내 건강 Pick</div>
+    <div class="subtitle">AI 기반 맞춤 건강기능식품 추천</div>
+  </div>
+  <div class="card" style="text-align:center;padding:24px 20px">
+    <p style="font-size:15px;line-height:1.7;color:var(--text-light)">건강정보 입력, 생활습관, 복용 약물을 분석하여<br>내게 필요한 건강기능식품을 추천해드립니다.</p>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:10px;margin:16px 0">
+    <div class="feature-item" style="flex:1;min-width:100px;text-align:center;padding:12px;background:white;border-radius:12px;box-shadow:var(--shadow)"><div style="font-size:24px;margin-bottom:4px">📋</div><div style="font-size:12px;font-weight:600">건강 분석</div></div>
+    <div class="feature-item" style="flex:1;min-width:100px;text-align:center;padding:12px;background:white;border-radius:12px;box-shadow:var(--shadow)"><div style="font-size:24px;margin-bottom:4px">🧬</div><div style="font-size:12px;font-weight:600">ML 예측</div></div>
+    <div class="feature-item" style="flex:1;min-width:100px;text-align:center;padding:12px;background:white;border-radius:12px;box-shadow:var(--shadow)"><div style="font-size:24px;margin-bottom:4px">💊</div><div style="font-size:12px;font-weight:600">제품 추천</div></div>
+  </div>
+  <button class="btn btn-primary" onclick="goToScreen('screen-direct', 1)">맞춤 분석 시작하기</button>
+</div>
+
+<div class="screen" id="screen-direct">
+  <div style="display:flex;align-items:center;gap:8px;padding:8px 0">
+    <button class="btn-back" onclick="goToScreen('screen-home', 0)">←</button>
+    <span style="font-weight:700;font-size:16px">건강 정보 입력</span>
+  </div>
+  <div class="progress-bar" id="progressBar"></div>
+  <label class="form-label">생년월일</label>
+  <input class="form-input" type="date" id="inputBirthDate" value="1990-01-01">
+  <label class="form-label">성별</label>
+  <select class="form-select" id="inputGender"><option value="남성">남성</option><option value="여성">여성</option></select>
+  <div class="form-group">
+    <div><label class="form-label">키 (cm)</label><input class="form-input" type="number" id="inputHeight" placeholder="170"></div>
+    <div><label class="form-label">몸무게 (kg)</label><input class="form-input" type="number" id="inputWeight" placeholder="70"></div>
+  </div>
+  <label class="form-label">건강 목표 (최대 3개 선택 가능)</label>
+  <div id="goalTags">
+    <span class="health-goal-tag" data-goal="눈 건강">👁️ 눈 건강</span>
+    <span class="health-goal-tag" data-goal="뼈 건강">🦴 뼈 건강</span>
+    <span class="health-goal-tag" data-goal="장 건강">🫄 장 건강</span>
+    <span class="health-goal-tag" data-goal="혈행 개선">🫀 혈행 개선</span>
+    <span class="health-goal-tag" data-goal="혈중 콜레스테롤 개선">📉 콜레스테롤</span>
+    <span class="health-goal-tag" data-goal="간 건강">🫁 간 건강</span>
+    <span class="health-goal-tag" data-goal="면역 기능">🛡️ 면역 기능</span>
+    <span class="health-goal-tag" data-goal="항산화">🔬 항산화</span>
+    <span class="health-goal-tag" data-goal="체지방 감소">⚖️ 체지방 감소</span>
+    <span class="health-goal-tag" data-goal="피로 개선">⚡ 피로 개선</span>
+    <span class="health-goal-tag" data-goal="에너지 이용">🔥 에너지 이용</span>
+    <span class="health-goal-tag" data-goal="전립선 건강">🚹 전립선 건강</span>
+    <span class="health-goal-tag" data-goal="생활습관 개선">🌿 생활습관 개선</span>
+  </div>
+  <div class="section-title">생활습관</div>
+  <label class="form-label">수면 시간</label>
+  <select class="form-select" id="inputSleep"><option value="7~8시간">7~8시간</option><option value="5시간 미만">5시간 미만</option><option value="5~6시간">5~6시간</option><option value="6~7시간">6~7시간</option><option value="8시간 이상">8시간 이상</option></select>
+  <label class="form-label">운동 빈도</label>
+  <select class="form-select" id="inputExercise"><option value="거의 안함">거의 안함</option><option value="주 1~2회">주 1~2회</option><option value="주 3~4회">주 3~4회</option><option value="주 5회 이상">주 5회 이상</option></select>
+  <label class="form-label">음주</label>
+  <select class="form-select" id="inputAlcohol"><option value="비음주">비음주</option><option value="월 1~2회">월 1~2회</option><option value="주 1~2회">주 1~2회</option><option value="주 3~4회">주 3~4회</option><option value="거의 매일">거의 매일</option></select>
+  <label class="form-label">흡연</label>
+  <select class="form-select" id="inputSmoking"><option value="비흡연">비흡연</option><option value="흡연">흡연</option><option value="과거 흡연">과거 흡연</option></select>
+  <label class="form-label">카페인 섭취</label>
+  <select class="form-select" id="inputCaffeine"><option value="보통">보통</option><option value="낮음">낮음</option><option value="높음">높음</option></select>
+  <label class="form-label">채소 섭취</label>
+  <select class="form-select" id="inputVeg"><option value="보통">보통</option><option value="낮음">낮음</option><option value="높음">높음</option></select>
+  <label class="form-label">생선 섭취</label>
+  <select class="form-select" id="inputFish"><option value="보통">보통</option><option value="낮음">낮음</option><option value="높음">높음</option></select>
+  <label class="form-label">스트레스 수준</label>
+  <select class="form-select" id="inputStress"><option value="보통">보통</option><option value="낮음">낮음</option><option value="높음">높음</option></select>
+  <label class="form-label">야외활동</label>
+  <select class="form-select" id="inputOutdoor"><option value="보통">보통</option><option value="낮음">낮음</option><option value="높음">높음</option></select>
+  <div class="section-title">약물 및 알레르기</div>
+  <label class="form-label">복용 중인 약물</label>
+  <select class="form-select" id="inputMedication"><option value="없음">없음</option><option value="혈압약">혈압약</option><option value="당뇨약">당뇨약</option><option value="혈전용해제">혈전용해제</option><option value="이뇨제">이뇨제</option><option value="갑상선약">갑상선약</option><option value="항생제">항생제</option><option value="기타">기타</option></select>
+  <label class="form-label">알레르기</label>
+  <select class="form-select" id="inputAllergy"><option value="없음">없음</option><option value="유제품">유제품</option><option value="대두">대두</option><option value="밀">밀</option><option value="해산물">해산물</option><option value="견과류">견과류</option><option value="기타">기타</option></select>
+  <button class="btn btn-primary" onclick="runDirectAnalysis()" style="margin-top:16px">분석 시작하기</button>
+</div>
+
+<div class="screen" id="screen-analysis">
+  <div style="display:flex;align-items:center;gap:8px;padding:8px 0">
+    <button class="btn-back" onclick="goToScreen('screen-direct', 1)">←</button>
+    <span style="font-weight:700;font-size:16px">건강 분석 결과</span>
+  </div>
+  <div id="analysisContent"></div>
+  <button class="btn btn-primary" id="btnShowRecs" onclick="showRecommendations()" style="display:none;margin-top:4px">추천 제품 보기</button>
+  <button class="btn btn-ghost" onclick="goToScreen('screen-home', 0)" style="margin-top:4px">처음으로</button>
+</div>
+
+<div class="screen" id="screen-recommend">
+  <div style="display:flex;align-items:center;gap:8px;padding:8px 0">
+    <button class="btn-back" onclick="goToScreen('screen-analysis', 2)">←</button>
+    <span style="font-weight:700;font-size:16px">추천 제품</span>
+  </div>
+  <div id="recommendContent"></div>
+  <div id="compareButtonRow" style="display:flex;gap:8px;margin-top:4px">
+    <button class="btn btn-primary" style="flex:1" onclick="openCompare()">제품 비교하기</button>
+    <button class="btn btn-secondary" style="flex:1" onclick="goToScreen('screen-home', 0)">처음으로</button>
+  </div>
+  <div class="disclaimer"><strong>📌 주의사항</strong> 본 추천은 참고용입니다. 의약품을 복용 중이거나 질환이 있는 경우 반드시 전문가와 상담 후 섭취하세요. 건강기능식품은 질병의 진단, 치료, 예방을 목적으로 하지 않습니다.</div>
+</div>
+
+<!-- Auth Modal -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal-content" style="max-width:340px;text-align:center">
+    <h3 style="font-size:18px;margin-bottom:8px">본인인증이 완료되었습니다.</h3>
+    <p style="font-size:14px;color:var(--text-light);margin-bottom:16px">건강 데이터를 연동하시겠습니까?</p>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" style="flex:1;max-width:140px" onclick="confirmAuth()">예</button>
+      <button class="btn btn-secondary" style="flex:1;max-width:140px" onclick="cancelAuth()">아니오</button>
+    </div>
+  </div>
+</div>
+
+<!-- Compare Modal -->
+<div class="modal-overlay" id="compareModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeCompare()">✕</button>
+    <h3 style="font-size:18px;margin-bottom:16px">📊 제품 비교</h3>
+    <div id="compareContent"></div>
+  </div>
+</div>
+
+<!-- AI Report Modal -->
+<div class="modal-overlay ai-report-modal" id="aiReportModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeAiReportModal()">✕</button>
+    <div id="aiReportBody"></div>
+  </div>
+</div>
+
+<!-- Payment Screen -->
+<div class="payment-screen" id="paymentScreen">
+  <div class="payment-card">
+    <div class="pay-icon">💎</div>
+    <h3>AI 건강 리포트 결제</h3>
+    <p>현재는 프로토타입 결제 화면입니다.<br>실제 결제는 진행되지 않습니다.</p>
+    <button class="btn-pay" onclick="processPayment()">결제 완료하기</button>
+    <button class="btn-cancel-pay" onclick="closePayment()">취소</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+</div>
+
+<script>
+// State
+let analysisResult = null;
+let recommendationResult = null;
+let healthGoalGroups = [];
+let currentTabIndex = 0;
+const linkState = { healthCheck: { isAuthenticated: false, isConnected: false }, medication: { isAuthenticated: false, isConnected: false }, wearable: { isAuthenticated: false, isConnected: false } };
+let pendingAuthTarget = null;
+const SCREENS = ['screen-home', 'screen-direct', 'screen-analysis', 'screen-recommend'];
+
+function goToScreen(id, step) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  updateProgress(step);
+  window.scrollTo(0, 0);
+}
+function updateProgress(step) {
+  var bar = document.getElementById('progressBar');
+  bar.innerHTML = '';
+  for (var i = 0; i < SCREENS.length - 1; i++) {
+    var div = document.createElement('div');
+    div.className = 'progress-step' + (i < step ? ' done' : '') + (i === step ? ' current' : '');
+    bar.appendChild(div);
+  }
+}
+updateProgress(0);
+
+// Goal tags
+document.querySelectorAll('#goalTags .health-goal-tag').forEach(function(el) {
+  el.addEventListener('click', function() {
+    var selected = document.querySelectorAll('#goalTags .health-goal-tag.selected');
+    if (el.classList.contains('selected')) { el.classList.remove('selected'); }
+    else if (selected.length >= 3) { showToast('건강 목표는 최대 3개까지 선택할 수 있습니다.'); }
+    else { el.classList.add('selected'); }
+  });
+});
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show';
+  setTimeout(function() { t.className = 'toast'; }, 2500);
+}
+
+// Auth
+function showAuthModal(target) { pendingAuthTarget = target; document.getElementById('authModal').classList.add('active'); }
+function confirmAuth() {
+  document.getElementById('authModal').classList.remove('active');
+  if (!pendingAuthTarget) return;
+  linkState[pendingAuthTarget].isAuthenticated = true;
+  linkState[pendingAuthTarget].isConnected = true;
+  updateLinkUI(pendingAuthTarget);
+  pendingAuthTarget = null;
+}
+function cancelAuth() {
+  document.getElementById('authModal').classList.remove('active');
+  if (!pendingAuthTarget) return;
+  linkState[pendingAuthTarget].isAuthenticated = true;
+  linkState[pendingAuthTarget].isConnected = false;
+  updateLinkUI(pendingAuthTarget);
+  pendingAuthTarget = null;
+}
+function toggleConnection(target, checked) {
+  var state = linkState[target];
+  if (!state.isAuthenticated) {
+    if (checked) { showAuthModal(target); document.getElementById('toggle' + target.charAt(0).toUpperCase() + target.slice(1)).checked = false; }
+    return;
+  }
+  state.isConnected = checked;
+  updateLinkUI(target);
+}
+function updateLinkUI(target) {
+  var state = linkState[target];
+  var id = target.charAt(0).toUpperCase() + target.slice(1);
+  var toggle = document.getElementById('toggle' + id);
+  var btn = document.getElementById('link' + id + 'Btn');
+  var status = document.getElementById('link' + id + 'Status');
+  var card = document.getElementById('link' + id);
+  if (state.isAuthenticated) {
+    btn.textContent = '✅ 인증완료'; btn.disabled = true; toggle.disabled = false;
+    if (state.isConnected) { toggle.checked = true; status.textContent = '🟢 연동됨'; status.style.color = '#155724'; card.style.background = '#f0faf4'; }
+    else { toggle.checked = false; status.textContent = '미연동'; status.style.color = '#999'; card.style.background = ''; }
+  } else {
+    btn.textContent = '본인인증'; btn.disabled = false; toggle.disabled = true; toggle.checked = false; status.textContent = '미연동'; status.style.color = '#999'; card.style.background = '';
+  }
+}
+
+// Analysis
+async function runDirectAnalysis() {
+  goToScreen('screen-analysis', 2);
+  var el = document.getElementById('analysisContent');
+  el.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>분석 진행중...</p></div>';
+  var birthDate = document.getElementById('inputBirthDate').value;
+  var age = calculateAge(birthDate);
+  var sleepMap = { '5시간 미만': 4.5, '5~6시간': 5.5, '6~7시간': 6.5, '7~8시간': 7.5, '8시간 이상': 8.5 };
+  var data = {
+    age: age, gender: document.getElementById('inputGender').value,
+    height: parseFloat(document.getElementById('inputHeight').value) || 170,
+    weight: parseFloat(document.getElementById('inputWeight').value) || 70,
+    health_goal: Array.from(document.querySelectorAll('.health-goal-tag.selected')).map(function(el) { return el.dataset.goal; }).join(','),
+    health_goals: Array.from(document.querySelectorAll('#goalTags .health-goal-tag.selected')).map(function(el) { return el.dataset.goal; }),
+    sleep_hours: sleepMap[document.getElementById('inputSleep').value],
+    exercise_freq: document.getElementById('inputExercise').value,
+    alcohol: document.getElementById('inputAlcohol').value,
+    smoking: document.getElementById('inputSmoking').value,
+    caffeine: document.getElementById('inputCaffeine').value,
+    vegetable_intake: document.getElementById('inputVeg').value,
+    fish_intake: document.getElementById('inputFish').value,
+    stress_level: document.getElementById('inputStress').value,
+    outdoor_activity: document.getElementById('inputOutdoor').value,
+    medication: document.getElementById('inputMedication').value,
+    allergies: document.getElementById('inputAllergy').value,
+    health_checkup_data: linkState.healthCheck.isConnected,
+    wearable_data: linkState.wearable.isConnected,
+    medication_connected: linkState.medication.isConnected,
+  };
+  var res = await fetch('/api/analyze', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ direct_input: data }) });
+  var result = await res.json();
+  analysisResult = result;
+  renderAnalysis(result);
+}
+function renderAnalysis(result) {
+  var el = document.getElementById('analysisContent');
+  var a = result.analysis;
+  var hs = result.health_summary;
+  var selectedGoals = Array.from(document.querySelectorAll('#goalTags .health-goal-tag.selected')).map(function(el) { return '<span class="summary-badge" style="background:#e8f5e9;color:#2e7d32">🏷️ ' + el.dataset.goal + '</span>'; }).join('');
+  el.innerHTML =
+    '<div class="card"><div class="card-title">📋 건강 정보 요약</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">' +
+    (hs.bmi ? '<span class="summary-badge" style="background:#f0faf4;color:var(--text)">BMI <strong>' + hs.bmi + '</strong></span> ' : '') +
+    '<span class="summary-badge" style="background:#d6eaf8;color:#1a5276">' + hs.age + '세</span>' +
+    '<span class="summary-badge" style="background:#f0e6f6;color:#6c3483">' + hs.gender + '</span>' + selectedGoals + '</div></div>' +
+    '<div class="card"><div class="card-title">🏃 생활습관 분석</div>' + (a.reasons || []).map(function(r) { return '<p style="font-size:13px;line-height:1.6;padding:4px 0">• ' + r + '</p>'; }).join('') + '</div>' +
+    '<div class="card"><div class="card-title">🧪 부족 가능 영양소</div><div>' +
+    (a.deficiencies || []).map(function(d) { return '<span class="nutrient-tag green">' + d + '</span>'; }).join('') +
+    ((a.deficiencies || []).length === 0 ? '<p style="font-size:13px;color:var(--text-light)">분석 결과 특별한 영양소 부족이 확인되지 않았습니다.</p>' : '') + '</div></div>' +
+    ((a.caution_ingredients || []).length > 0 ? '<div class="card" style="border-left:4px solid var(--danger)"><div class="card-title">⚠️ 주의사항</div>' + (a.caution_reasons || []).map(function(r) { return '<p style="font-size:13px;line-height:1.6;padding:4px 0">• ' + r + '</p>'; }).join('') + '</div>' : '');
+  document.getElementById('btnShowRecs').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+function calculateAge(birthDate) {
+  var today = new Date();
+  var birth = new Date(birthDate);
+  var age = today.getFullYear() - birth.getFullYear();
+  var m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+}
+
+// Recommendations
+async function showRecommendations() {
+  goToScreen('screen-recommend', 3);
+  var el = document.getElementById('recommendContent');
+  el.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>추천 제품을 찾고 있습니다...</p></div>';
+  var birthDate = document.getElementById('inputBirthDate').value;
+  var age = calculateAge(birthDate);
+  var sleepMap = { '5시간 미만': 4.5, '5~6시간': 5.5, '6~7시간': 6.5, '7~8시간': 7.5, '8시간 이상': 8.5 };
+  var data = {
+    age: age, gender: document.getElementById('inputGender').value,
+    height: parseFloat(document.getElementById('inputHeight').value) || 170,
+    weight: parseFloat(document.getElementById('inputWeight').value) || 70,
+    health_goal: Array.from(document.querySelectorAll('.health-goal-tag.selected')).map(function(el) { return el.dataset.goal; }).join(','),
+    health_goals: Array.from(document.querySelectorAll('#goalTags .health-goal-tag.selected')).map(function(el) { return el.dataset.goal; }),
+    sleep_hours: sleepMap[document.getElementById('inputSleep').value],
+    exercise_freq: document.getElementById('inputExercise').value,
+    alcohol: document.getElementById('inputAlcohol').value,
+    smoking: document.getElementById('inputSmoking').value,
+    caffeine: document.getElementById('inputCaffeine').value,
+    vegetable_intake: document.getElementById('inputVeg').value,
+    fish_intake: document.getElementById('inputFish').value,
+    stress_level: document.getElementById('inputStress').value,
+    outdoor_activity: document.getElementById('inputOutdoor').value,
+    medication: document.getElementById('inputMedication').value,
+    allergies: document.getElementById('inputAllergy').value,
+    health_checkup_data: linkState.healthCheck.isConnected,
+    wearable_data: linkState.wearable.isConnected,
+    medication_connected: linkState.medication.isConnected,
+  };
+  var res = await fetch('/api/analyze', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ direct_input: data }) });
+  var result = await res.json();
+  recommendationResult = result;
+  renderRecommendations(result);
+}
+function renderRecommendations(result) {
+  var el = document.getElementById('recommendContent');
+  var groups = result.recommendations || [];
+  var hasFinal = result.final_recommendation && result.final_recommendation.length > 0;
+  var hasAny = groups.some(function(g) { return g.products && g.products.length > 0; }) || hasFinal;
+  if (!hasAny) {
+    el.innerHTML = '<div class="card" style="text-align:center;padding:40px 20px"><div style="font-size:48px;margin-bottom:16px">🔍</div><div class="card-title" style="font-size:16px;margin-bottom:8px">추천 제품이 없습니다</div><p style="font-size:14px;color:var(--text-light);line-height:1.6">건강 목표를 추가하거나 더 많은 정보를 입력해보세요.</p></div>';
+    document.getElementById('btnShowRecs').style.display = 'none';
+    document.getElementById('compareButtonRow').style.display = 'none';
+    return;
+  }
+  window.healthGoalGroups = groups;
+  window.finalRecommendation = result.final_recommendation || [];
+  window.combinationSummary = result.combination_summary || {};
+  window.analysisData = result.analysis || {};
+  window.currentTabIndex = 'final';
+  renderTabs();
+  renderTabContent('final');
+  window.scrollTo(0, 0);
+}
+
+// Tabs
+function renderTabs() {
+  var el = document.getElementById('recommendContent');
+  var groups = window.healthGoalGroups || [];
+  var hasFinal = window.finalRecommendation && window.finalRecommendation.length > 0;
+  var tabsHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">';
+  if (hasFinal) { tabsHtml += '<span class="health-goal-tag selected" data-tab="final" onclick="switchTab(' + "'final'" + ')">🏆 최종 추천</span>'; }
+  groups.forEach(function(g, idx) {
+    tabsHtml += '<span class="health-goal-tag" data-tab="' + (idx+1) + '" onclick="switchTab(' + (idx+1) + ')">' + g.goal + '</span>';
+  });
+  tabsHtml += '<span class="health-goal-tag" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:white;display:inline-flex;align-items:center;gap:4px" onclick="openAiReportModal()">🔒 AI 건강 리포트</span>';
+  tabsHtml += '</div>';
+  el.innerHTML = tabsHtml;
+}
+function switchTab(idx) {
+  window.currentTabIndex = idx;
+  document.querySelectorAll('.health-goal-tag[data-tab]').forEach(function(el) { el.classList.toggle('selected', el.dataset.tab == idx); });
+  renderTabContent(idx);
+}
+function renderTabContent(idx) {
+  if (idx === 'final') { renderFinalTabContent(); return; }
+  // Non-final tabs not implemented in this simplified version
+}
+function renderFinalTabContent() {
+  var container = document.getElementById('recommendContent');
+  var finalRecs = window.finalRecommendation || [];
+  var comboSummary = window.combinationSummary || {};
+  var analysisData = window.analysisData || {};
+  var selectedGoals = Array.from(document.querySelectorAll('#goalTags .health-goal-tag.selected')).map(function(el) { return el.dataset.goal; });
+  document.querySelectorAll('.nutrient-products').forEach(function(el) { el.remove(); });
+  var html = '<div class="nutrient-products">';
+  html += '<div class="card" style="margin-bottom:12px;padding:14px 18px"><div class="card-title" style="font-size:14px;margin-bottom:6px">🏆 최적 조합 — 통합 분석</div><p style="font-size:13px;color:var(--text-light);line-height:1.6;margin:0">선택한 ' + selectedGoals.length + '개 건강 목표(' + selectedGoals.join(', ') + ')를 모두 고려하여<br>함께 복용하기 적합한 제품 조합을 추천합니다.</p></div>';
+  if (finalRecs.length === 0) {
+    html += '<div class="card" style="text-align:center;padding:32px 20px"><div style="font-size:48px;margin-bottom:12px">🔍</div><div class="card-title" style="font-size:16px;margin-bottom:8px">조건에 맞는 추천 제품이 없습니다.</div><p style="font-size:14px;color:var(--text-light);line-height:1.6">선택한 건강 목표와 생활습관 조건을 모두 만족하는 제품을 찾지 못했습니다.<br>건강 목표를 변경하거나 더 많은 정보를 입력해보세요.</p></div>';
+  } else {
+    html += '<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px">';
+    finalRecs.forEach(function(item) {
+      var p = item.product;
+      var score = item.total_score;
+      var breakdown = item.score_breakdown || {};
+      var color = score >= 85 ? '#2ecc71' : score >= 70 ? '#3498db' : '#f39c12';
+      var nf = p.nutrition_facts || {};
+      var funcIngs = p.functional_ingredients || [];
+      html += '<div class="product-card" style="border-left:4px solid #FFD700;flex:0 0 auto;width:calc(50% - 5px);min-width:200px;margin-bottom:0">' +
+        '<div class="pc-name" style="margin-top:0">' + p.product_name + '</div>' +
+        '<div class="pc-company">' + (p.company_name || '') + (p.manufacture_type ? ' · ' + p.manufacture_type : '') + (p.form_type ? ' · ' + p.form_type : '') + '</div>' +
+        (item.goals_covered ? '<div style="font-size:12px;color:var(--primary-dark);margin-bottom:6px">✅ ' + item.goals_covered + ' / ' + item.total_goals + '개 건강 목표 충족</div>' : '') +
+        '<div class="pc-score-row"><div class="pc-score-badge" style="background:' + color + '">' + score + '점</div><div style="font-size:12px;color:var(--text-light);line-height:1.4">적합 ' + (breakdown['건강적합도']||0) + ' | 보충 ' + (breakdown['부족영양소보충']||0) + ' | 안전 ' + (breakdown['안전성']||0) + '<br>생활 ' + (breakdown['생활습관적합도']||0) + ' | 가성비 ' + (breakdown['가성비']||0) + ' | 편의 ' + (breakdown['복용편의성']||0) + '</div></div>' +
+        (item.recommendationReasons && item.recommendationReasons.length > 0 ? '<div class="pc-section"><div class="pc-section-title">💡 추천 이유</div><ul style="padding-left:16px;margin:0">' + item.recommendationReasons.map(function(r) { return '<li style="font-size:13px;line-height:1.5">' + r + '</li>'; }).join('') + '</ul></div>' : '') +
+        (funcIngs.length > 0 ? '<div class="pc-section"><div class="pc-section-title">🌿 기능성 원료</div><div class="pc-ing-list">' + funcIngs.map(function(f) { return '<span class="pc-ing">' + f.ingredient_name + (f.functional_claim ? ' - ' + f.functional_claim : '') + '</span>'; }).join('') + '</div></div>' : '') +
+        (nf && Object.keys(nf).length > 0 ? '<div class="pc-section"><div class="pc-section-title">🧪 주요 영양성분 함량</div><div class="pc-ing-list">' +
+          (nf.vitamin_c_mg > 0 ? '<span class="pc-ing">비타민C ' + nf.vitamin_c_mg + 'mg</span>' : '') +
+          (nf.vitamin_d_ug > 0 ? '<span class="pc-ing">비타민D ' + nf.vitamin_d_ug + 'µg</span>' : '') +
+          (nf.calcium_mg > 0 ? '<span class="pc-ing">칼슘 ' + nf.calcium_mg + 'mg</span>' : '') +
+          (nf.magnesium_mg > 0 ? '<span class="pc-ing">마그네슘 ' + nf.magnesium_mg + 'mg</span>' : '') +
+          (nf.zinc_mg > 0 ? '<span class="pc-ing">아연 ' + nf.zinc_mg + 'mg</span>' : '') +
+          (nf.iron_mg > 0 ? '<span class="pc-ing">철분 ' + nf.iron_mg + 'mg</span>' : '') +
+          (nf.epa_dha_mg > 0 ? '<span class="pc-ing">EPA/DHA ' + nf.epa_dha_mg + 'mg</span>' : '') +
+          (nf.lutein_mg > 0 ? '<span class="pc-ing">루테인 ' + nf.lutein_mg + 'mg</span>' : '') +
+          (nf.probiotics_cfu > 0 ? '<span class="pc-ing">프로바이오틱스 ' + nf.probiotics_cfu + 'CFU</span>' : '') +
+          (nf.folic_acid_ug > 0 ? '<span class="pc-ing">엽산 ' + nf.folic_acid_ug + 'µg</span>' : '') +
+        '</div></div>' : '') +
+        (p.intake_method ? '<div class="pc-section"><div class="pc-section-title">📅 섭취 방법</div><p>' + p.intake_method + (p.intake_time ? ' | ' + p.intake_time : '') + '</p></div>' : '') +
+        (item.cautionReasons && item.cautionReasons.length > 0 ? '<div class="pc-section" style="border-left:3px solid var(--danger);padding-left:10px"><div class="pc-section-title">⚠️ 주의사항</div><ul style="padding-left:16px;margin:0">' + item.cautionReasons.map(function(c) { return '<li style="font-size:12px;color:var(--danger);line-height:1.5">' + c + '</li>'; }).join('') + '</ul></div>' : '') +
+        '</div>';
+    });
+    html += '</div>';
+    // Shopping banner
+    var firstProduct = finalRecs.length > 0 ? (finalRecs[0].product ? finalRecs[0].product.product_name || '' : '') : '';
+    if (firstProduct) {
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#e8f8f0,#d4f1e6);border-radius:14px;padding:14px 18px;margin:12px 0;gap:10px">' +
+        '<div style="flex:1;min-width:0"><div style="font-size:11px;color:#00a86b;font-weight:600;margin-bottom:2px">📢 광고</div>' +
+        '<div style="font-size:14px;font-weight:700;color:#1a5c3a;line-height:1.4">🛒 추천 제품 구매</div>' +
+        '<div style="font-size:12px;color:#2d8a5e;line-height:1.4;margin-top:2px">AI가 추천한 영양제를 공식 판매처에서 확인하고 구매할 수 있습니다.</div></div>' +
+        '<a href="https://search.shopping.naver.com/search/all?query=' + encodeURIComponent(firstProduct) + '" target="_blank" rel="noopener noreferrer" style="flex-shrink:0;background:#00a86b;color:white;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:4px">네이버쇼핑에서 보기 ↗</a></div>';
+    }
+    // Why this combination
+    var allDefNames = analysisData.deficiencies || [];
+    var allReasons = analysisData.reasons || [];
+    var med = document.getElementById('inputMedication') ? document.getElementById('inputMedication').value : '없음';
+    var uncoveredWarnings = comboSummary.uncovered_goal_warnings || [];
+    var coveredGoalNames = comboSummary.covered_goal_names || selectedGoals;
+    var isAllGoalsCovered = coveredGoalNames.length >= selectedGoals.length;
+    var hasMultiGoal = finalRecs.some(function(item) { return item.goals_covered >= 2; });
+    html += '<div class="card" style="margin-bottom:0;padding:14px 18px;margin-top:12px"><div class="card-title" style="font-size:14px;margin-bottom:8px">💡 왜 이 조합을 추천했나요?</div><ul style="padding-left:16px;margin:0">' +
+      '<li style="font-size:13px;line-height:1.6;margin-bottom:6px">선택한 건강 목표 ' + selectedGoals.length + '개 중 ' + (isAllGoalsCovered ? '모두' : coveredGoalNames.length + '개') + '(' + (isAllGoalsCovered ? selectedGoals.join(', ') : coveredGoalNames.join(', ')) + ')를 충족합니다.' + (hasMultiGoal ? ' 여러 건강 목표를 동시에 충족하는 복합 제품을 우선 선택하여 효율성을 높였습니다.' : '') + '</li>' +
+      (allDefNames.length > 0 ? '<li style="font-size:13px;line-height:1.6;margin-bottom:6px">' + allDefNames.join(', ') + ' 등 부족 가능 영양소를 효율적으로 보충합니다.</li>' : '') +
+      (allReasons.length > 0 ? '<li style="font-size:13px;line-height:1.6;margin-bottom:6px">생활습관 분석 결과(' + allReasons[0] + ')를 반영한 맞춤 조합입니다.</li>' : '') +
+      (hasMultiGoal ? '<li style="font-size:13px;line-height:1.6;margin-bottom:6px">복합 제품을 우선 선택하여 복용 편의성을 높였습니다.</li>' : '') +
+      '<li style="font-size:13px;line-height:1.6;margin-bottom:6px">동일 영양소의 과도한 중복을 최소화하여 불필요한 초과 섭취 없이 균형 있게 구성하였습니다.</li>' +
+      '<li style="font-size:13px;line-height:1.6;margin-bottom:6px">' + (med !== '없음' && med !== '' ? '복용 약물 정보를 반영하여 상호작용 위험이 적은 제품만 선택하였습니다.' : '각 제품의 성분과 주의사항을 검토하여 함께 복용하기에 적합한 조합만을 추천합니다.') + '</li></ul>' +
+      (uncoveredWarnings.length > 0 ? '<div style="margin-top:10px;padding:10px 14px;background:#fff3cd;border-radius:10px;font-size:12px;color:#856404;line-height:1.6">' + uncoveredWarnings.map(function(w) { return '<p style="margin:2px 0">• ' + w + '</p>'; }).join('') + '</div>' : '') +
+      '</div>';
+  }
+  html += '</div>';
+  container.insertAdjacentHTML('beforeend', html);
+}
+
+// Compare
+function openCompare() {
+  document.getElementById('compareModal').classList.add('active');
+  var el = document.getElementById('compareContent');
+  var groups = window.healthGoalGroups || [];
+  var items = window.finalRecommendation || [];
+  var html = '<table style="width:100%;border-collapse:collapse;font-size:13px"><tr><th style="text-align:left;padding:6px">항목</th>';
+  items.forEach(function(r) { html += '<th style="text-align:center;padding:6px">' + (r.product ? r.product.product_name || '' : '') + '</th>'; });
+  html += '</tr>';
+  var rows = [
+    { label: '총점', key: 'total_score' },
+    { label: '건강적합도', key: '건강적합도' },
+    { label: '부족영양소보충', key: '부족영양소보충' },
+    { label: '안전성', key: '안전성' },
+    { label: '생활습관적합도', key: '생활습관적합도' },
+    { label: '가성비', key: '가성비' },
+    { label: '복용편의성', key: '복용편의성' },
+  ];
+  rows.forEach(function(row) {
+    html += '<tr><td style="padding:6px;border-bottom:1px solid #eee;font-weight:600">' + row.label + '</td>';
+    items.forEach(function(r) {
+      var score = row.key === 'total_score' ? r.total_score : (r.score_breakdown ? r.score_breakdown[row.key] : 0);
+      html += '<td style="text-align:center;padding:6px;border-bottom:1px solid #eee">' + (score || 0) + '점</td>';
+    });
+    html += '</tr>';
+  });
+  html += '</table>';
+  el.innerHTML = html;
+}
+function closeCompare() { document.getElementById('compareModal').classList.remove('active'); }
+
+// AI Report Modal
+function openAiReportModal() {
+  var body = document.getElementById('aiReportBody');
+  body.innerHTML =
+    '<p style="font-size:14px;color:var(--text-light);line-height:1.6;margin-bottom:16px">AI 건강 리포트는 <strong>유료 기능</strong>입니다.<br><br>사용자의 PHR 데이터, 머신러닝 기반 부족 가능 영양소 예측 결과, 추천 제품 정보를 종합해 개인 맞춤 건강 리포트를 제공합니다.</p>' +
+    '<div class="preview-box"><strong>📋 미리보기</strong><ul style="padding-left:16px;margin:8px 0 0"><li>PHR 기반 생활습관 요약</li><li>머신러닝 기반 부족 가능 영양소 TOP 3</li><li>추천 제품 선택 이유</li><li>복용 시 주의사항 요약</li></ul></div>' +
+    '<div style="display:flex;gap:8px;margin-top:16px"><button class="btn btn-primary" style="flex:1;background:linear-gradient(135deg,#6c5ce7,#a29bfe)" onclick="goToPayment()">예, 결제하기</button><button class="btn btn-secondary" style="flex:1" onclick="closeAiReportModal()">아니오</button></div>';
+  document.getElementById('aiReportModal').classList.add('active');
+}
+function closeAiReportModal() { document.getElementById('aiReportModal').classList.remove('active'); }
+function goToPayment() { closeAiReportModal(); document.getElementById('paymentScreen').classList.add('active'); }
+function closePayment() { document.getElementById('paymentScreen').classList.remove('active'); }
+function processPayment() { alert('결제가 완료되었습니다! AI 건강 리포트를 확인하세요.'); closePayment(); showAiReportAfterPayment(); }
+function showAiReportAfterPayment() {
+  var analysisData = window.analysisData || {};
+  var mlPredictions = (analysisData.ml_predictions && analysisData.ml_predictions.length > 0) ? analysisData.ml_predictions : null;
+  var body = document.getElementById('aiReportBody');
+  if (!mlPredictions) {
+    body.innerHTML = '<p style="font-size:14px;color:#b2bec3;text-align:center;padding:20px">분석 결과가 없습니다.</p>';
+    document.getElementById('aiReportModal').classList.add('active');
+    return;
+  }
+  var itemsHtml = '';
+  var top5 = mlPredictions.slice(0, 5);
+  for (var i = 0; i < top5.length; i++) {
+    var p = top5[i];
+    var color = p.percentage >= 70 ? '#e17055' : p.percentage >= 50 ? '#f39c12' : '#00b894';
+    itemsHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px;border-bottom:1px solid #eee"><span style="color:#636e72">' + (p.nutrient || p.name || '') + '</span><span style="font-weight:700;color:' + color + '">' + p.percentage + '%</span></div>';
+  }
+  body.innerHTML = '<h3 style="font-size:18px;margin-bottom:12px;color:#6c5ce7">🤖 AI 건강 리포트</h3>' +
+    '<div style="font-size:14px;line-height:1.6;max-height:60vh;overflow-y:auto;padding-right:4px">' +
+    '<div style="margin-bottom:16px"><div style="font-weight:700;font-size:15px;margin-bottom:8px;color:#2d3436">Machine Learning Result</div>' + itemsHtml + '</div>' +
+    '<div style="margin-bottom:12px;padding:16px;background:#f8f9fa;border-radius:14px;border:1px solid #e9ecef">' +
+    '<div style="font-weight:700;font-size:15px;margin-bottom:10px;color:#6c5ce7">⭐ Premium Health Report Preview</div>' +
+    '<div style="font-size:12px;color:#b2bec3;margin-bottom:10px;line-height:1.5">향후 제공 예정</div>' +
+    '<div style="display:flex;flex-direction:column;gap:6px">' +
+    '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:white;border-radius:8px;color:#b2bec3;font-size:13px"><span>🔒</span> 건강 종합 점수</div>' +
+    '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:white;border-radius:8px;color:#b2bec3;font-size:13px"><span>🔒</span> 영역별 건강 점수</div>' +
+    '<div style="padding-left:34px;display:flex;flex-direction:column;gap:3px;margin-bottom:4px">' +
+    '<div style="display:flex;align-items:center;gap:8px;padding:4px 10px;background:white;border-radius:6px;color:#d2d5d9;font-size:12px"><span>·</span> 수면</div>' +
+    '<div style="display:flex;align-items:center;gap:8px;padding:4px 10px;background:white;border-radius:6px;color:#d2d5d9;font-size:12px"><span>·</span> 운동</div>' +
+    '<div style="display:flex;align-items:center;gap:8px;padding:4px 10px;background:white;border-radius:6px;color:#d2d5d9;font-size:12px"><span>·</span> 식습관</div>' +
+    '<div style="display:flex;align-items:center;gap:8px;padding:4px 10px;background:white;border-radius:6px;color:#d2d5d9;font-size:12px"><span>·</span> 심혈관 건강</div></div>' +
+    '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:white;border-radius:8px;color:#b2bec3;font-size:13px"><span>🔒</span> AI 맞춤 건강 코멘트</div>' +
+    '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:white;border-radius:8px;color:#b2bec3;font-size:13px"><span>🔒</span> 4주 생활습관 개선 플랜</div>' +
+    '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:white;border-radius:8px;color:#b2bec3;font-size:13px"><span>🔒</span> PDF 건강 리포트 다운로드</div>' +
+    '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:white;border-radius:8px;color:#b2bec3;font-size:13px"><span>🔒</span> 이메일 리포트 발송</div></div></div>' +
+    '<div style="text-align:center;padding:8px 0;font-size:13px;color:#b2bec3">🔒 Premium 이용 시 확인 가능합니다.</div></div>' +
+    '<button class="btn btn-primary" style="margin-top:16px;background:linear-gradient(135deg,#6c5ce7,#a29bfe)" onclick="closeAiReportModal()">확인</button>';
+  document.getElementById('aiReportModal').classList.add('active');
+}
+
+// Close modals on overlay click
+document.getElementById('authModal').addEventListener('click', function(e) { if (e.target === e.currentTarget) cancelAuth(); });
+document.getElementById('compareModal').addEventListener('click', function(e) { if (e.target === e.currentTarget) closeCompare(); });
+document.getElementById('aiReportModal').addEventListener('click', function(e) { if (e.target === e.currentTarget) closeAiReportModal(); });
+document.getElementById('paymentScreen').addEventListener('click', function(e) { if (e.target === e.currentTarget) closePayment(); });
+</script>
+</body>
+</html>
